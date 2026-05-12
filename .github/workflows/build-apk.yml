@@ -1,0 +1,45 @@
+name: Build Android APK (Free Cloud Build)
+
+on:
+  workflow_dispatch: # 수동으로 빌드를 실행할 수 있게 해주는 옵션
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Build APK
+        run: eas build -p android --profile preview --local --non-interactive --output app-release.apk
+        env:
+          EXPO_NO_TELEMETRY: 1
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-apk
+          path: app-release.apk
